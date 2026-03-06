@@ -75,3 +75,57 @@ def extract_markdown_images(text):
 def extract_markdown_links(text):
     matches = re.findall(r"\[(.*?)\]\((.*?)\)",text)
     return matches
+
+def split_nodes_image(old_nodes):
+    # print(f"\n Testing: {old_nodes}")
+    new_nodes = []
+    for old_node in old_nodes:
+        sections = []
+        extracted_md_list = extract_markdown_images(old_node.text)
+        if len(extracted_md_list) == 0:
+            sections.append(old_node)
+            continue
+        working_string = old_node.text
+        # print(working_string)
+        for count, (img_alt, img_src) in enumerate(extracted_md_list):
+            # print(f"Iter= {count} CHECKING extract_md_list: ", img_alt,img_src)
+            temp = working_string.split(f"![{img_alt}]({img_src})",1)
+
+            sections.append(TextNode(temp[0],TextType.TEXT))
+            sections.append(TextNode(f"{img_alt}",TextType.IMAGE,f"{img_src}"))
+
+            working_string = re.sub(r"^.*?!\[(.*?)\]\((.*?)\)",'',working_string)
+            # print("TEMP : ", temp)
+            # print("working_string : ", working_string)
+            # print(f"sections after: {sections}")
+            # print("\n end")
+        new_nodes.extend(sections)
+    # print("Final:", new_nodes)
+    return new_nodes
+
+def split_nodes_link(old_nodes):
+    # print(f"\n Testing: {old_nodes}")
+    new_nodes = []
+    for old_node in old_nodes:
+        sections = []
+        extracted_md_list = extract_markdown_links(old_node.text)
+        if len(extracted_md_list) == 0:
+            sections.append(old_node)
+            continue
+        working_string = old_node.text
+        print(working_string)
+        for count, (link_alt, link_src) in enumerate(extracted_md_list):
+            # print(f"Iter= {count} CHECKING extract_md_list: ", link_alt,link_src)
+            temp = working_string.split(f"[{link_alt}]({link_src})",1)
+
+            sections.append(TextNode(temp[0],TextType.TEXT))
+            sections.append(TextNode(f"{link_alt}",TextType.IMAGE,f"{link_src}"))
+
+            working_string = re.sub(r"^.*?\[(.*?)\]\((.*?)\)",'',old_node.text)
+            # print("TEMP : ", temp)
+            # print("working_string : ", working_string)
+            # print(f"sections after: {sections}")
+            # print("\n end")
+        new_nodes.extend(sections)
+    # print("Final:", new_nodes)
+    return new_nodes
