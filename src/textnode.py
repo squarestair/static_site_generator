@@ -91,7 +91,8 @@ def split_nodes_image(old_nodes):
             # print(f"Iter= {count} CHECKING extract_md_list: ", img_alt,img_src)
             temp = working_string.split(f"![{img_alt}]({img_src})",1)
 
-            sections.append(TextNode(temp[0],TextType.TEXT))
+            if working_string != '' and temp[0] != '':
+                sections.append(TextNode(temp[0],TextType.TEXT))
             sections.append(TextNode(f"{img_alt}",TextType.IMAGE,f"{img_src}"))
 
             working_string = re.sub(r"^.*?!\[(.*?)\]\((.*?)\)",'',working_string)
@@ -99,6 +100,8 @@ def split_nodes_image(old_nodes):
             # print("working_string : ", working_string)
             # print(f"sections after: {sections}")
             # print("\n end")
+        if working_string != '':
+            sections.append(TextNode(working_string,TextType.TEXT))
         new_nodes.extend(sections)
     # print("Final:", new_nodes)
     return new_nodes
@@ -113,19 +116,22 @@ def split_nodes_link(old_nodes):
             sections.append(old_node)
             continue
         working_string = old_node.text
-        print(working_string)
+        # print(working_string)
         for count, (link_alt, link_src) in enumerate(extracted_md_list):
-            # print(f"Iter= {count} CHECKING extract_md_list: ", link_alt,link_src)
+            # print(f"Iter= {count} CHECKING extract_md_list: ", img_alt,img_src)
             temp = working_string.split(f"[{link_alt}]({link_src})",1)
 
-            sections.append(TextNode(temp[0],TextType.TEXT))
-            sections.append(TextNode(f"{link_alt}",TextType.IMAGE,f"{link_src}"))
+            if working_string != '' and temp[0] != '':
+                sections.append(TextNode(temp[0],TextType.TEXT))
+            sections.append(TextNode(f"{link_alt}",TextType.LINK,f"{link_src}"))
 
-            working_string = re.sub(r"^.*?\[(.*?)\]\((.*?)\)",'',old_node.text)
+            working_string = re.sub(r"^.*?\[(.*?)\]\((.*?)\)",'',working_string)
             # print("TEMP : ", temp)
             # print("working_string : ", working_string)
             # print(f"sections after: {sections}")
             # print("\n end")
+        if working_string != '':
+            sections.append(TextNode(working_string,TextType.TEXT))
         new_nodes.extend(sections)
     # print("Final:", new_nodes)
     return new_nodes
