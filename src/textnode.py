@@ -76,7 +76,27 @@ def extract_markdown_links(text):
     matches = re.findall(r"\[(.*?)\]\((.*?)\)",text)
     return matches
 
+# Refactored and replaced old implementation
 def split_nodes_image(old_nodes):
+    new_nodes = []
+    for old_node in old_nodes:
+        links = extract_markdown_images(old_node.text)
+        if not links:
+            new_nodes.append(old_node)
+            continue
+        text = old_node.text
+        for anchor, url in links:
+            parts = text.split(f"![{anchor}]({url})", 1)
+            if parts[0]:
+                new_nodes.append(TextNode(parts[0], TextType.TEXT))
+            new_nodes.append(TextNode(anchor, TextType.IMAGE, url))
+            text = parts[1]
+        if text:
+            new_nodes.append(TextNode(text, TextType.TEXT))
+    return new_nodes
+
+# Original implementation - Replaced by split_nodes_image_0
+def split_nodes_image_0(old_nodes):
     # print(f"\n Testing: {old_nodes}")
     new_nodes = []
     for old_node in old_nodes:
@@ -107,6 +127,25 @@ def split_nodes_image(old_nodes):
     return new_nodes
 
 def split_nodes_link(old_nodes):
+    new_nodes = []
+    for old_node in old_nodes:
+        links = extract_markdown_links(old_node.text)
+        if not links:
+            new_nodes.append(old_node)
+            continue
+        text = old_node.text
+        for anchor, url in links:
+            parts = text.split(f"[{anchor}]({url})", 1)
+            if parts[0]:
+                new_nodes.append(TextNode(parts[0], TextType.TEXT))
+            new_nodes.append(TextNode(anchor, TextType.LINK, url))
+            text = parts[1]
+        if text:
+            new_nodes.append(TextNode(text, TextType.TEXT))
+    return new_nodes
+
+# Refactor to split_nodes_link, original implementation had bugs with regex
+def split_nodes_link_0(old_nodes):
     # print(f"\n Testing: {old_nodes}")
     new_nodes = []
     for old_node in old_nodes:
@@ -188,3 +227,13 @@ def split_nodes_link_SOLUTION(old_nodes):
         if original_text != "":
             new_nodes.append(TextNode(original_text, TextType.TEXT))
     return new_nodes
+
+def text_to_textnodes(text):
+    processed_tn = [TextNode(text, TextType.TEXT)]
+    processed_tn = split_nodes_image(processed_tn)
+    processed_tn = split_nodes_link(processed_tn)
+    processed_tn = split_nodes_delimiter(processed_tn, "**", TextType.BOLD)
+    processed_tn = split_nodes_delimiter(processed_tn, "_", TextType.ITALIC)
+    processed_tn = split_nodes_delimiter(processed_tn, "`", TextType.CODE)
+    # print("\n Final : \n", processed_tn)
+    return processed_tn
